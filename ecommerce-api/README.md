@@ -60,7 +60,4 @@ A RESTful backend API built using Java and Spring Boot for managing products and
 
 ---
 
-## 🚀 Run Locally
-
-```bash
 
