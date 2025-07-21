@@ -1,13 +1,19 @@
 package com.ecommerce.ecommerce_api.service.impl;
 
 import com.ecommerce.ecommerce_api.dto.ProductDto;
+import com.ecommerce.ecommerce_api.dto.ProductResponse;
 import com.ecommerce.ecommerce_api.entity.Category;
 import com.ecommerce.ecommerce_api.entity.Product;
 import com.ecommerce.ecommerce_api.exception.ResourceNotFoundException;
 import com.ecommerce.ecommerce_api.repository.CategoryRepository;
 import com.ecommerce.ecommerce_api.repository.ProductRepository;
 import com.ecommerce.ecommerce_api.service.ProductService;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +27,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Autowired
     private CategoryRepository categoryRepo;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
 
     @Override
@@ -78,10 +87,28 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductDto> getAllProducts() {
-        return productRepo.findAll().stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
+    public ProductResponse getAllProducts(int pageNumber, int pageSize, String sortBy, String sortDir){
+
+        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+
+        Page<Product> pageProducts = productRepo.findAll(pageable);
+
+        List<ProductDto> content = pageProducts
+                .getContent()
+                .stream()
+                .map(product -> modelMapper.map(product, ProductDto.class))
+                .toList();
+
+        return ProductResponse.builder()
+                .content(content)
+                .pageNumber(pageProducts.getNumber())
+                .pageSize(pageProducts.getSize())
+                .totalElements(pageProducts.getTotalElements())
+                .totalPages(pageProducts.getTotalPages())
+                .lastPage(pageProducts.isLast())
+                .build();
     }
 
     @Override
@@ -94,6 +121,18 @@ public class ProductServiceImpl implements ProductService {
                .map(this::mapToDto)
                .collect(Collectors.toList());
     }
+
+    @Override
+    public List<ProductDto> getProductsByPriceRange(Double minPrice, Double maxPrice) {
+        List<Product> products = productRepo.findByPriceBetween(minPrice,maxPrice);
+        return products.stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+    }
+
+
+
+
 
     // Mapping helper method
     private ProductDto mapToDto(Product product){

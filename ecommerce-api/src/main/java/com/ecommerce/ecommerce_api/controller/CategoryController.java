@@ -1,9 +1,8 @@
 package com.ecommerce.ecommerce_api.controller;
 
-
 import com.ecommerce.ecommerce_api.dto.CategoryDto;
+import com.ecommerce.ecommerce_api.payload.ApiResponse;
 import com.ecommerce.ecommerce_api.service.CategoryService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,35 +16,38 @@ public class CategoryController {
     @Autowired
     private CategoryService categoryService;
 
-    //Create
+    // CREATE
     @PostMapping
-    public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto){
-        return ResponseEntity.ok(categoryService.createCategory(categoryDto));
+    public ResponseEntity<ApiResponse<CategoryDto>> createCategory(@RequestBody CategoryDto categoryDto) {
+        CategoryDto created = categoryService.createCategory(categoryDto);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Category created successfully", created));
     }
 
-    //Update
+    // UPDATE
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDto> updateCategory(@RequestBody CategoryDto categoryDto , @PathVariable Long id){
-        return ResponseEntity.ok(categoryService.updateCategory(categoryDto,id));
+    public ResponseEntity<ApiResponse<CategoryDto>> updateCategory(@RequestBody CategoryDto categoryDto, @PathVariable Long id) {
+        CategoryDto updated = categoryService.updateCategory(categoryDto, id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Category updated successfully", updated));
     }
 
-    //Delete
+    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long id){
+    public ResponseEntity<ApiResponse<String>> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok("Category deleted successfully");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Category deleted successfully", null));
     }
 
-    // Get by ID
+    // GET BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDto> getCategoryById(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    public ResponseEntity<ApiResponse<CategoryDto>> getCategoryById(@PathVariable Long id) {
+        CategoryDto category = categoryService.getCategoryById(id);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Category fetched successfully", category));
     }
 
-    // Get all
+    // GET ALL
     @GetMapping
-    public ResponseEntity<List<CategoryDto>> getAllCategories() {
+    public ResponseEntity<ApiResponse<List<CategoryDto>>> getAllCategories() {
         List<CategoryDto> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(categories);
+        return ResponseEntity.ok(new ApiResponse<>(true, "All categories fetched successfully", categories));
     }
 }

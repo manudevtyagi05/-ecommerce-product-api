@@ -1,6 +1,7 @@
 package com.ecommerce.ecommerce_api.service;
 
 import com.ecommerce.ecommerce_api.dto.ProductDto;
+import com.ecommerce.ecommerce_api.dto.ProductResponse;
 
 import java.util.List;
 
@@ -14,7 +15,9 @@ public interface ProductService {
 
     ProductDto getProductById(Long productId);
 
-    List<ProductDto> getAllProducts();
+    ProductResponse getAllProducts(int pageNumber, int pageSize , String sortBy , String sortDir);
+
+    List<ProductDto> getProductsByPriceRange(Double minPrice, Double maxPrice);
 
     List<ProductDto> getProductsByCategory(Long categoryId);
 }

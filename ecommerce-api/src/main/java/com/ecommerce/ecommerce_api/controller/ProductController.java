@@ -1,6 +1,8 @@
 package com.ecommerce.ecommerce_api.controller;
 
 import com.ecommerce.ecommerce_api.dto.ProductDto;
+import com.ecommerce.ecommerce_api.dto.ProductResponse;
+import com.ecommerce.ecommerce_api.payload.ApiResponse;
 import com.ecommerce.ecommerce_api.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,42 +18,62 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    //CREATE
+    // CREATE
     @PostMapping
-    public ResponseEntity<ProductDto> createProduct(@RequestBody ProductDto productDto){
+    public ResponseEntity<ApiResponse<ProductDto>> createProduct(@RequestBody ProductDto productDto) {
         ProductDto created = productService.createProduct(productDto);
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Product created successfully", created));
     }
 
-    //UPDATE
+    // UPDATE
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductDto> updateProduct(@RequestBody ProductDto productDto , @PathVariable Long productId){
-        ProductDto updated = productService.updateProduct(productDto,productId);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<ApiResponse<ProductDto>> updateProduct(@RequestBody ProductDto productDto, @PathVariable Long productId) {
+        ProductDto updated = productService.updateProduct(productDto, productId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Product updated successfully", updated));
     }
 
-    //DELETE
+    // DELETE
     @DeleteMapping("/{productId}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long productId) {
+    public ResponseEntity<ApiResponse<String>> deleteProduct(@PathVariable Long productId) {
         productService.deleteProduct(productId);
-        return ResponseEntity.ok("Product deleted successfully");
+        return ResponseEntity.ok(new ApiResponse<>(true, "Product deleted successfully", null));
     }
 
-    // GET a SINGLE PRODUCT
+    // GET BY ID
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDto> getProductById(@PathVariable Long productId) {
-        return ResponseEntity.ok(productService.getProductById(productId));
+    public ResponseEntity<ApiResponse<ProductDto>> getProductById(@PathVariable Long productId) {
+        ProductDto product = productService.getProductById(productId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Product fetched successfully", product));
     }
 
     // GET ALL PRODUCTS
     @GetMapping
-    public ResponseEntity<List<ProductDto>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<ApiResponse<ProductResponse>> getAllProducts(
+            @RequestParam(value = "pageNumber", defaultValue = "0", required = false) int pageNumber,
+            @RequestParam(value = "pageSize", defaultValue = "10", required = false) int pageSize,
+            @RequestParam(value = "sortBy", defaultValue = "productId", required = false) String sortBy,
+            @RequestParam(value = "sortDir", defaultValue = "asc", required = false) String sortDir
+    ) {
+        ProductResponse productResponse = productService.getAllProducts(pageNumber, pageSize, sortBy, sortDir);
+        return new ResponseEntity<>(new ApiResponse<>(true, "All products fetched successfully", productResponse),HttpStatus.OK);
     }
 
     // GET PRODUCTS BY CATEGORY
     @GetMapping("/category/{categoryId}")
-    public ResponseEntity<List<ProductDto>> getProductsByCategory(@PathVariable Long categoryId) {
-        return ResponseEntity.ok(productService.getProductsByCategory(categoryId));
+    public ResponseEntity<ApiResponse<List<ProductDto>>> getProductsByCategory(@PathVariable Long categoryId) {
+        List<ProductDto> products = productService.getProductsByCategory(categoryId);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Products by category fetched successfully", products));
     }
+
+    // GET PRODUCTS BY PRICE-RANGE
+    @GetMapping("/price-range")
+    public ResponseEntity<ApiResponse<List<ProductDto>>> getProductsByPriceRange(
+            @RequestParam("min") Double minPrice,
+            @RequestParam("max") Double maxPrice
+    ) {
+        List<ProductDto> products = productService.getProductsByPriceRange(minPrice, maxPrice);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Products filtered by price", products));
+    }
+
+
 }
